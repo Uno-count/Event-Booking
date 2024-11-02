@@ -21,7 +21,7 @@ func main() {
 
 	server := gin.Default()
 	eventService := event.NewService(appConfig)
-	server.GET("/events")
+	server.GET("/events", eventService.GetEventServiceHandler)
 	server.POST("/events", eventService.CreateEventHandler)
 
 	log.Println("Server starting on :8080")

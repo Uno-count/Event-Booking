@@ -17,8 +17,6 @@ func dbCreateEvent(ctx context.Context, db *sql.Tx, model Event) (int64, error) 
 		return 0, err
 	}
 
-	defer stmt.Close()
-
 	result, err := stmt.ExecContext(ctx, model.Name, model.Description, model.Location, model.UserID)
 
 	if err != nil {
@@ -30,7 +28,7 @@ func dbCreateEvent(ctx context.Context, db *sql.Tx, model Event) (int64, error) 
 }
 
 func dbGetEvent(ctx context.Context, db *sql.DB) ([]Event, error) {
-	query := `SELECT * FROM events`
+	query := `SELECT id, name, description, location, user_id FROM events`
 	rows, err := db.Query(query)
 
 	if err != nil {
