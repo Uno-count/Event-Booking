@@ -1,39 +1,31 @@
 package main
 
 import (
-	"net/http"
+	"context"
+	"fmt"
+	"log"
 
-	"github.com/Uno-count/event-booking-api/models"
+	"github.com/Uno-count/event-booking-api/domains/event"
+	"github.com/Uno-count/event-booking-api/webserver/handler/app"
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
-	server := gin.Default()
 
-	server.GET("/events", getEvents)
-	server.POST("/events", createEvent)
+	appConfig := app.Init()
 
-	server.Run(":8080")
-}
-
-func getEvents(context *gin.Context) {
-
-	events := models.GetAllEvents()
-	context.JSON(http.StatusOK, events)
-}
-
-func createEvent(context *gin.Context) {
-	var event models.Event
-	err := context.ShouldBindJSON(&event)
-
-	if err != nil {
-		context.JSON(http.StatusBadRequest, err)
-
-		return
+	error := appConfig.StartWebServer(context.Background())
+	if error != nil {
+		fmt.Println("failed to start the app: ", error)
 	}
 
-	event.ID = 1
-	event.UserID = 1
+	server := gin.Default()
+	eventService := event.NewService(appConfig)
+	server.GET("/events")
+	server.POST("/events", eventService.CreateEventHandler)
 
-	context.JSON(http.StatusCreated, gin.H{"message": "Event Created", "event": event})
+	log.Println("Server starting on :8080")
+	if err := server.Run(":8080"); err != nil {
+		log.Fatal("Server failed to start:", err)
+	}
 }
